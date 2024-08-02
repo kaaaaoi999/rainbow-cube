@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Shape Maker with Lighting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .controls label, .controls select, .controls button {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="controls">
+            <label for="shape">Shape:</label>
+            <select id="shape">
+                <option value="cube">Cube</option>
+                <option value="sphere">Sphere</option>
+                <option value="cone">Cone</option>
+            </select>
+            <button onclick="updateShape()">Update Shape</button>
+        </div>
+        <div id="canvas"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, mesh, material;
+        let colorChangeInterval;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('canvas').appendChild(renderer.domElement);
+
+            camera.position.z = 5;
+
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
+            scene.add(ambientLight);
+
+            // Add a directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // White light
+            directionalLight.position.set(5, 5, 5).normalize();
+            scene.add(directionalLight);
+
+            // Add a point light
+            const pointLight = new THREE.PointLight(0xff0000, 1, 100); // Red light
+            pointLight.position.set(-5, -5, 5);
+            scene.add(pointLight);
+
+            // Add a spotlight
+            const spotLight = new THREE.SpotLight(0x00ff00); // Green light
+            spotLight.position.set(0, 10, 10);
+            spotLight.angle = Math.PI / 6; // Cone angle
+            spotLight.penumbra = 0.2; // Soft edge
+            spotLight.decay = 2; // Falloff
+            spotLight.distance = 100; // Range
+            scene.add(spotLight);
+
+            // Default shape
+            updateShape();
+
+            animate();
+            startColorChange();
+        }
+
+        function updateShape() {
+            if (mesh) {
+                scene.remove(mesh);
+            }
+
+            const shapeType = document.getElementById('shape').value;
+            let geometry;
+
+            switch(shapeType) {
+                case 'cube':
+                    geometry = new THREE.BoxGeometry();
+                    break;
+                case 'sphere':
+                    geometry = new THREE.SphereGeometry();
+                    break;
+                case 'cone':
+                    geometry = new THREE.ConeGeometry();
+                    break;
+            }
+
+            material = new THREE.MeshStandardMaterial({ color: getRandomColor() });
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+        }
+
+        function getRandomColor() {
+            // Generates a random color in hexadecimal format
+            return Math.floor(Math.random()*16777215).toString(16);
+        }
+
+        function startColorChange() {
+            // Change color every 2 seconds
+            colorChangeInterval = setInterval(() => {
+                if (material) {
+                    material.color.setHex(parseInt(getRandomColor(), 16));
+                }
+            }, 2000);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (mesh) {
+                mesh.rotation.x += 0.01;
+                mesh.rotation.y += 0.01;
+            }
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+</body>
+</html>
