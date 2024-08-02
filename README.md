@@ -1,2 +1,2 @@
 # rainbow cube
- A Beautiful HTML Screen Saver For Phones and computers.
+ A Beautiful HTML Screen Saver For phones and computers.
